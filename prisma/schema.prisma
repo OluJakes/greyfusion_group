@@ -1,0 +1,405 @@
+// Switch provider to "mysql" for production shared hosting (one-line change).
+// Shared-hosting DATABASE_URL guidance: append ?connection_limit=3&pool_timeout=20
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  ref       String   @unique
+  type      String   // PROJECT_INTAKE | VENDOR_REG | MAINTENANCE | TEST_DRIVE | BOOKING | B2B_QUOTE | APPLICATION | CONTACT | TRADE_IN | CAPABILITY_DECK
+  division  String   // corporate | construction | energy | it | real-estate | autos | commerce
+  name      String
+  email     String
+  phone     String   @default("")
+  subject   String   @default("")
+  payload   String   @default("{}") // JSON string (SQLite-safe)
+  status    String   @default("NEW") // NEW | CONTACTED | CLOSED
+  createdAt DateTime @default(now())
+}
+
+model Vehicle {
+  id         String  @id @default(cuid())
+  slug       String  @unique
+  make       String
+  model      String
+  year       Int
+  powertrain String  // BEV | PHEV | HEV
+  bodyStyle  String
+  priceNGN   Int
+  rangeKm    Int
+  batteryKwh Float
+  accel      Float   // 0-100 km/h seconds
+  chargeKw   Int     // max DC charge
+  chargeTime String
+  seats      Int
+  colors     String  // JSON [{name,hex}]
+  summary    String
+  featured   Boolean @default(false)
+  gallery    EntityMedia[]
+}
+
+model Property {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  title       String
+  type        String  // shortlet | residential | commercial | warehousing
+  location    String
+  city        String
+  priceNGN    Int     // annual rent or sale-equiv; shortlet uses nightlyNGN
+  nightlyNGN  Int     @default(0)
+  serviceNGN  Int     @default(0)
+  depositNGN  Int     @default(0)
+  cautionNGN  Int     @default(0)
+  beds        Int
+  baths       Int
+  sqm         Int
+  amenities   String  // JSON string[]
+  summary     String
+  featured    Boolean @default(false)
+  bookings    PropertyBooking[]
+  gallery     EntityMedia[]
+}
+
+model PropertyBooking {
+  id         String   @id @default(cuid())
+  ref        String   @unique
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+  name       String
+  email      String
+  phone      String
+  startDate  DateTime
+  endDate    DateTime
+  totalNGN   Int
+  status     String   @default("PENDING") // PENDING | CONFIRMED | CANCELLED | BLOCKED
+  createdAt  DateTime @default(now())
+}
+
+model Product {
+  id       String @id @default(cuid())
+  slug     String @unique
+  name     String
+  category String // solar | inverters | electronics | smart-home | enterprise
+  priceNGN Int
+  stock    Int
+  variants String @default("[]") // JSON [{label,options[]}]
+  specs    String @default("[]") // JSON [{k,v}]
+  summary  String
+  featured Boolean @default(false)
+  gallery  EntityMedia[]
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  ref       String   @unique
+  name      String
+  email     String
+  phone     String
+  address   String
+  city      String
+  method    String   // paystack | paypal | payoneer | transfer | pod
+  state     String   @default("") // Nigerian state / region
+  gateway   String   @default("") // originating gateway
+  gatewayRef String  @default("") // paystack_ref, paypal_id, payoneer invoice no.
+  items     String   // JSON [{slug,name,qty,priceNGN,variant}]
+  totalNGN  Int
+  status    String   @default("PENDING") // PENDING | PAID | PROCESSING | SHIPPED | DELIVERED
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id        String @id @default(cuid())
+  slug      String @unique
+  title     String
+  sector    String
+  status    String // Completed | Ongoing
+  location  String
+  valueBand String
+  year      Int
+  client    String
+  summary   String
+  challenge String
+  solution  String
+  division  String @default("construction")
+  gallery   EntityMedia[]
+}
+
+model Tender {
+  id          String   @id @default(cuid())
+  refNo       String   @unique
+  title       String
+  category    String
+  closingDate DateTime
+  status      String   @default("OPEN") // OPEN | CLOSED
+  description String
+}
+
+model Ticket {
+  id          String   @id @default(cuid())
+  ref         String   @unique
+  name        String
+  email       String
+  category    String
+  severity    String   // LOW | MEDIUM | HIGH | CRITICAL
+  description String
+  status      String   @default("OPEN") // OPEN | IN_PROGRESS | RESOLVED
+  createdAt   DateTime @default(now())
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  division    String
+  location    String
+  type        String   // Full-time | Contract | Hybrid
+  summary     String
+  description String
+  postedAt    DateTime @default(now())
+  open        Boolean  @default(true)
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  division    String
+  excerpt     String
+  body        String
+  author      String
+  coverImage  String   @default("")
+  publishedAt DateTime @default(now())
+  readMins    Int      @default(6)
+}
+
+// ─── Dynamic CMS core (SQLite/MySQL-safe: JSON stored as String) ───
+
+model SiteConfiguration {
+  id        String   @id @default(cuid())
+  key       String   @unique // e.g. "fx_rates", "footer_credits", "regional_badges"
+  value     String   // JSON string
+  updatedAt DateTime @updatedAt
+}
+
+model DynamicPageContent {
+  id           String   @id @default(cuid())
+  pageSlug     String   @unique // "home", "about", "construction", "energy", "it", "smart-home", "real-estate", "autos", "commerce"
+  heroTitle    String
+  heroSubtitle String
+  heroVideos   String   @default("[]") // JSON string[] of ambient loop URLs
+  heroImages   String   @default("[]") // JSON string[] of fallback covers
+  bodyJson     String   @default("{}") // flexible JSON for dynamic sections
+  updatedAt    DateTime @updatedAt
+}
+
+model PricingPlan {
+  id           String  @id @default(cuid())
+  division     String  // "energy", "it", "smart-home", ...
+  title        String
+  price        Float
+  currency     String  @default("NGN") // NGN | USD | EUR
+  billingCycle String  @default("one-time") // monthly | one-time | annual
+  features     String  @default("[]") // JSON string[]
+  scope        String  @default("")
+  isActive     Boolean @default(true)
+  highlight    Boolean @default(false)
+  ctaText      String  @default("Get Started")
+  displayOrder Int     @default(0)
+}
+
+model ShowcaseAsset {
+  id           String  @id @default(cuid())
+  category     String  // "ecommerce" | "realestate" | "autos" | "construction" | "page"
+  entityId     String  // slug of the entity this asset belongs to
+  url          String
+  kind         String  @default("image") // image | video
+  altText      String  @default("Greyfusion project media")
+  isHeroCover  Boolean @default(false)
+  displayOrder Int     @default(0)
+
+  @@index([category, entityId])
+}
+
+model LeadershipPersonnel {
+  id           String   @id @default(cuid())
+  name         String
+  role         String
+  bio          String
+  avatarUrl    String   @default("") // external URL, local path, or base64 data URL from admin upload
+  linkedIn     String   @default("")
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+}
+
+model CorporateCredential {
+  id              String    @id @default(cuid())
+  title           String    // e.g. "FIRS Tax Clearance Certificate", "Full Bid Pack"
+  authority       String    // issuing authority
+  licenseNumber   String
+  category        String    @default("corporate") // corporate | tax | procurement | professional | financial | bidpack
+  documentUrl     String    @default("")
+  verificationUrl String    @default("")
+  validUntil      String    @default("") // legacy display string
+  expiryDate      DateTime? // structured validity for status pills
+  fileSizeInBytes Int       @default(0) // enforced on upload; formatted to MB in UI
+  isActive        Boolean   @default(true)
+  displayOrder    Int       @default(0)
+  updatedAt       DateTime  @updatedAt
+}
+
+
+// ─── Universal relational media gallery (V6) ───
+// One table serves galleries for vehicles, properties, products and projects.
+// isMain flags the primary thumbnail; displayOrder sorts the strip.
+model EntityMedia {
+  id           String   @id @default(cuid())
+  url          String   // local upload path, base64 data URL, or external CDN URL
+  kind         String   @default("image") // image | video
+  isMain       Boolean  @default(false)
+  displayOrder Int      @default(0)
+  altText      String   @default("Greyfusion media asset")
+  caption      String?  // optional editorial caption shown under the frame
+
+  vehicleId  String?
+  vehicle    Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  productId  String?
+  product    Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  projectId  String?
+  project    Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([vehicleId])
+  @@index([propertyId])
+  @@index([productId])
+  @@index([projectId])
+}
+
+// ─── V7: dynamic branding, navigation & admin identity ───
+
+model SiteBranding {
+  id           String   @id @default("default")
+  logoLightUrl String   @default("") // light-mode logo (upload/base64 or CDN URL)
+  logoDarkUrl  String   @default("") // dark-mode logo
+  faviconUrl   String   @default("")
+  siteName     String   @default("Greyfusion Limited")
+  tagline      String   @default("Eight industries. One standard of execution.")
+  updatedAt    DateTime @updatedAt
+}
+
+model NavigationItem {
+  id           String           @id @default(cuid())
+  label        String
+  url          String
+  target       String           @default("_self") // _self | _blank
+  location     String           // HEADER | FOOTER_MAIN | FOOTER_LEGAL | FOOTER_QUICK
+  displayOrder Int              @default(0)
+  isVisible    Boolean          @default(true)
+  parentId     String?
+  parent       NavigationItem?  @relation("NavHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children     NavigationItem[] @relation("NavHierarchy")
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([location])
+}
+
+model SocialMediaLink {
+  id           String   @id @default(cuid())
+  platform     String
+  url          String
+  iconKey      String   @default("link") // linkedin | x | instagram | facebook | whatsapp | youtube | link
+  displayOrder Int      @default(0)
+  isVisible    Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  fullName     String    @default("")
+  passwordHash String    // scrypt: salt:hash (hex)
+  role         String    @default("EDITOR") // SUPER_ADMIN | COMPLIANCE_OFFICER | EDITOR | AUDITOR
+  permissions  String    @default("[]") // JSON string[] of permission flags (SQLite has no scalar list)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// ─── V9: automation, energy sizing & smart-home quoting ───
+
+// Audit trail for the hourly Intavalto Retail (WooCommerce) product sync.
+model SyncLog {
+  id         String   @id @default(cuid())
+  source     String   @default("INTAVALTO_RETAIL")
+  status     String   // SUCCESS | PARTIAL | FAILED
+  itemCount  Int      @default(0)
+  details    String?  // JSON summary: created/updated/failed, message
+  executedAt DateTime @default(now())
+
+  @@index([source, executedAt])
+}
+
+// Captured lead from the Pro ESS solar/storage sizing calculator.
+model EssCalculationLead {
+  id                  String   @id @default(cuid())
+  fullName            String
+  email               String
+  phone               String   @default("")
+  dailyKwh            Float
+  recommendedBattery  String
+  recommendedPv       String
+  recommendedInverter String
+  status              String   @default("NEW") // NEW | CONTACTED | QUOTED | CLOSED
+  createdAt           DateTime @default(now())
+}
+
+// Smart-home configurator quote routed to WhatsApp. selectedModules stored as a
+// JSON string array (SQLite has no native scalar-list type).
+model SmartHomeQuote {
+  id              String   @id @default(cuid())
+  propertyType    String
+  zoneCount       Int      @default(0)
+  selectedModules String   @default("[]") // JSON string[]
+  estimatedCost   Float    @default(0)
+  clientPhone     String?
+  createdAt       DateTime @default(now())
+}
+
+// ─── V13: native enterprise analytics / telemetry ───
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  eventType String   // PAGE_VIEW | DOWNLOAD | CLICK | FORM_SUBMIT
+  path      String
+  sessionId String
+  ipAddress String?
+  userAgent String?
+  metadata  String?  // JSON string: file names, document titles, button IDs, etc.
+  createdAt DateTime @default(now())
+
+  @@index([eventType, createdAt])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+model DailyAnalyticsSummary {
+  id             String   @id @default(cuid())
+  date           String   @unique // YYYY-MM-DD
+  totalVisits    Int      @default(0)
+  uniqueVisitors Int      @default(0)
+  totalDownloads Int      @default(0)
+  bounceRate     Float    @default(0.0)
+  updatedAt      DateTime @updatedAt
+}
