@@ -14,22 +14,27 @@ FROM base AS build
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential node-gyp openssl pkg-config python-is-python3
 
-    COPY package-lock.json package.json ./
-    COPY prisma .
-    RUN npm install --include=dev
+# Copy package files and configuration files first
+COPY package.json package-lock.json prisma.config.js ./
 
-    RUN npx prisma generate
+# Copy the prisma folder containing your schema and migrations
+COPY prisma ./prisma
 
-    COPY . .
+# Now run the install (which triggers postinstall: prisma generate)
+RUN npm install --include=dev --legacy-peer-deps
 
-    RUN npx next build --experimental-build-mode compile
+RUN npx prisma generate
 
-  RUN DATABASE_URL="file:/app/prisma/seed.db" npx prisma db push --accept-data-loss
-    RUN DATABASE_URL="file:/app/prisma/seed.db" npm run db:seed || true
+COPY . .
 
-    RUN npm prune --omit=dev
+RUN npx next build --experimental-build-mode compile
 
-   FROM base
+RUN DATABASE_URL="file:/app/prisma/seed.db" npx prisma db push --accept-data-loss
+RUN DATABASE_URL="file:/app/prisma/seed.db" npm run db:seed || true
+
+RUN npm prune --omit=dev
+
+FROM base
 
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y openssl && \
@@ -39,13 +44,15 @@ COPY --from=build /app/.next/standalone /app
 COPY --from=build /app/.next/static /app/.next/static
 COPY --from=build /app/public /app/public
 COPY --from=build /app/docker-entrypoint.js /app/docker-entrypoint.js
-# COPY the entire prisma folder (schema + migrations)
+
+# Copy Prisma schema, migrations, and config for runtime migrations
 COPY --from=build /app/prisma /app/prisma
+COPY --from=build /app/prisma.config.js /app/prisma.config.js
 
 RUN chmod +x /app/docker-entrypoint.js
 
-RUN mkdir -p /data
-VOLUME /data
+RUN mkdir -p /app/data
+VOLUME /app/data
 
 ENTRYPOINT [ "/app/docker-entrypoint.js" ]
 
