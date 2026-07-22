@@ -2,15 +2,15 @@
 
 const { execSync } = require('child_process');
 
-console.log('Running Prisma database migrations...');
+console.log('Synchronizing Prisma database schema...');
 try {
-  execSync('prisma migrate deploy', {
+  execSync('prisma db push --accept-data-loss', {
     stdio: 'inherit',
     env: { ...process.env },
   });
-  console.log('Migrations completed successfully.');
+  console.log('Database schema synchronized successfully.');
 } catch (error) {
-  console.error('Failed to run migrations:', error);
+  console.error('Failed to synchronize database:', error);
   process.exit(1);
 }
 
