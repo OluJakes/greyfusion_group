@@ -2,9 +2,14 @@
 
 const { execSync } = require('child_process');
 
+const databaseUrl = process.env.DATABASE_URL || 'file:/app/data/sqlite.db';
+
 console.log('Running Prisma database migrations...');
 try {
-  execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+  execSync(`npx prisma migrate deploy --url="${databaseUrl}"`, {
+    stdio: 'inherit',
+    env: process.env,
+  });
   console.log('Migrations completed successfully.');
 } catch (error) {
   console.error('Failed to run migrations:', error);
