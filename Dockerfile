@@ -14,35 +14,40 @@ FROM base AS build
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential node-gyp openssl pkg-config python-is-python3
 
-COPY package-lock.json package.json ./
-COPY prisma .
-RUN npm install --include=dev
+    COPY package-lock.json package.json ./
+    COPY prisma .
+    RUN npm install --include=dev
 
-RUN npx prisma generate
+    RUN npx prisma generate
 
-COPY . .
+    COPY . .
 
-RUN npx next build --experimental-build-mode compile
+    RUN npx next build --experimental-build-mode compile
 
-RUN npm prune --omit=dev
+    RUN DATABASE_URL="file:/app/prisma/seed.db" npx prisma db push --skip-generate --accept-data-loss
+    RUN DATABASE_URL="file:/app/prisma/seed.db" npm run db:seed || true
 
-FROM base
+    RUN npm prune --omit=dev
 
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y openssl && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+    FROM base
 
-COPY --from=build /app/.next/standalone /app
-COPY --from=build /app/.next/static /app/.next/static
-COPY --from=build /app/public /app/public
-COPY --from=build /app/docker-entrypoint.js /app/docker-entrypoint.js
-RUN chmod +x /app/docker-entrypoint.js
+    RUN apt-get update -qq && \
+        apt-get install --no-install-recommends -y openssl && \
+            rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-RUN mkdir -p /data
-VOLUME /data
+            COPY --from=build /app/.next/standalone /app
+            COPY --from=build /app/.next/static /app/.next/static
+            COPY --from=build /app/public /app/public
+            COPY --from=build /app/docker-entrypoint.js /app/docker-entrypoint.js
+            COPY --from=build /app/prisma/seed.db /app/prisma/seed.db
+            RUN chmod +x /app/docker-entrypoint.js
 
-ENTRYPOINT [ "/app/docker-entrypoint.js" ]
+            RUN mkdir -p /data
+            VOLUME /data
 
-EXPOSE 3000
-ENV DATABASE_URL="file:///data/sqlite.db"
-CMD [ "node", "server.js" ]
+            ENTRYPOINT [ "/app/docker-entrypoint.js" ]
+
+            EXPOSE 3000
+            ENV DATABASE_URL="file:///data/sqlite.db"
+            CMD [ "node", "server.js" ]
+            
