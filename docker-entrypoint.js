@@ -22,7 +22,8 @@ try {
   });
   console.log('Database seeded successfully.');
 } catch (error) {
-  console.log('Seeding skipped or already applied.');
+  console.error('Failed to seed database:', error);
+  process.exit(1);
 }
 
 console.log('Starting Next.js standalone server...');
