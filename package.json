@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "typecheck": "tsc --noEmit",
-    "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "typecheck": "tsc --noEmit",
+  "db:push": "prisma db push",
+  "db:seed": "node --import tsx prisma/seed.ts",
+  "postinstall": "prisma generate"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
