@@ -13,9 +13,26 @@ const dbPath = (process.env.DATABASE_URL ?? "file:./prisma/dev.db").replace(/^fi
 const adapter = new PrismaBetterSqlite3({ url: path.isAbsolute(dbPath) ? dbPath : path.join(process.cwd(), dbPath) });
 const prisma = new PrismaClient({ adapter });
 
-const day = 86_400_000;
-const now = Date.now();
-const d = (offsetDays: number) => new Date(now + offsetDays * day);
+async function main() {
+  console.log("Seeding database (idempotent upsert)...");
+
+  // 1. Seed Admin User with populated update block
+  const adminPassword = hashPassword("Admin@12345");
+  await prisma.user.upsert({
+    where: { email: "admin@greyfusion.com.ng" },
+    update: {
+      password: adminPassword,
+      name: "Greyfusion Admin",
+      role: "ADMIN",
+    },
+    create: {
+      email: "admin@greyfusion.com.ng",
+      name: "Greyfusion Admin",
+      password: adminPassword,
+      role: "ADMIN",
+    },
+  });
+  console.log("Admin user seeded: admin@greyfusion.com.ng / Admin@12345");
 
 const vehicles = [
   { slug: "byd-dolphin", make: "BYD", model: "Dolphin", year: 2026, powertrain: "BEV", bodyStyle: "Hatchback", priceNGN: 28_500_000, rangeKm: 340, batteryKwh: 44.9, accel: 10.9, chargeKw: 60, chargeTime: "30–80% in 29 min (DC)", seats: 5, colors: JSON.stringify([{ name: "Coral Pink", hex: "#E8A9B0" }, { name: "Surf Blue", hex: "#5B8DB8" }, { name: "Polar White", hex: "#E8EAED" }]), summary: "The sensible first EV: compact, efficient and cheap to run. Real-world 340km covers a week of Abuja commuting on one charge.", featured: true },
@@ -89,23 +106,18 @@ const tenders = [
   { refNo: "GF-RFP-2026-009", title: "Haulage framework: heavy plant mobilisation (nationwide)", category: "Plant Hire / Logistics", closingDate: d(45), status: "OPEN", description: "National framework agreement for lowbed trailers (30T–75T) and crane trucks to support infrastructure deployment across six geopolitical zones. Telematics tracking and ISO 45001 compliance mandatory." }
 ];
 
-async function main() {
-  console.log("Seeding database (idempotent upsert)...");
+console.log("Database seeding completed successfully.");
+}
 
-  // 1. Seed Admin User
-  const adminPassword = hashPassword("olu@12345");
-  await prisma.user.update({
-    where: { email: "olumide@greyfusion.com.ng" },
-    update: {},
-    create: {
-      email: "admin@greyfusion.com.ng",
-      name: "Greyfusion Admin",
-      password: adminPassword,
-      role: "ADMIN",
-    },
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });
-  console.log("Admin user seeded: olumide@greyfusion.com.ng /olu@12345");
-
+  
   // 2. Seed Vehicles
   for (const v of vehicles) {
     await prisma.vehicle.upsert({
