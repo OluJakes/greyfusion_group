@@ -107,7 +107,7 @@ export function Footer({
       <div className="border-t border-white/10">
         <div className="container-gf flex flex-col items-center justify-between gap-3 py-5 text-xs text-titanium sm:flex-row">
           <p>© {new Date().getFullYear()} Greyfusion Limited · {COMPANY.rc} · {COMPANY.site}</p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 sm:pr-[400px]">
             {socialLinks.map((s) => (
               <a
                 key={s.platform + s.url}
