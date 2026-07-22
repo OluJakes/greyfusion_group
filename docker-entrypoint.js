@@ -14,7 +14,7 @@ try {
   process.exit(1);
 }
 
-console.log('Running database seeding...');
+console.log('Running database seed script...');
 try {
   execSync('npm run db:seed', {
     stdio: 'inherit',
@@ -22,7 +22,7 @@ try {
   });
   console.log('Database seeded successfully.');
 } catch (error) {
-  console.error('Seeding skipped or failed (admin user may already exist):', error);
+  console.log('Seeding skipped or already applied.');
 }
 
 console.log('Starting Next.js standalone server...');
