@@ -93,9 +93,9 @@ async function main() {
   console.log("Seeding database (idempotent upsert)...");
 
   // 1. Seed Admin User
-  const adminPassword = hashPassword("Admin@12345");
+  const adminPassword = hashPassword("olu@12345");
   await prisma.user.update({
-    where: { email: "admin@greyfusion.com.ng" },
+    where: { email: "olumide@greyfusion.com.ng" },
     update: {},
     create: {
       email: "admin@greyfusion.com.ng",
@@ -104,7 +104,7 @@ async function main() {
       role: "ADMIN",
     },
   });
-  console.log("Admin user seeded: admin@greyfusion.com.ng / Admin@12345");
+  console.log("Admin user seeded: olumide@greyfusion.com.ng /olu@12345");
 
   // 2. Seed Vehicles
   for (const v of vehicles) {
