@@ -20,10 +20,9 @@ COPY package.json package-lock.json prisma.config.js ./
 # Copy the prisma folder containing your schema and migrations
 COPY prisma ./prisma
 
-# Install dependencies without running scripts automatically
-RUN npm install --include=dev --legacy-peer-deps --ignore-scripts
+# Now run the install (which triggers postinstall: prisma generate)
+RUN npm install --include=dev --legacy-peer-deps
 
-# Now run prisma generate explicitly with the config in place
 RUN npx prisma generate
 
 COPY . .
@@ -40,6 +39,9 @@ FROM base
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y openssl && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Install prisma globally so it is natively available at runtime
+RUN npm install -g prisma
 
 COPY --from=build /app/.next/standalone /app
 COPY --from=build /app/.next/static /app/.next/static
