@@ -267,6 +267,223 @@ Buy the audit before the inverter. Both are in the store.`,
   },
 ];
 
+// ─── 100-strong EV fleet: top makers across the US, China and the rest of the world ───
+// Tuple: [make, model, year, powertrain, bodyStyle, priceNGN(millions), rangeKm, batteryKwh, 0-100s, maxDC kW, seats]
+type EVRow = [string, string, number, string, string, number, number, number, number, number, number];
+const EV_MODELS: EVRow[] = [
+  // Tesla · USA
+  ["Tesla", "Model Y", 2026, "BEV", "SUV", 68, 533, 75, 5.0, 250, 5],
+  ["Tesla", "Model S", 2026, "BEV", "Sedan", 125, 634, 100, 3.2, 250, 5],
+  ["Tesla", "Model X", 2026, "BEV", "SUV", 140, 576, 100, 3.9, 250, 7],
+  ["Tesla", "Model 3 Performance", 2026, "BEV", "Sedan", 82, 528, 79, 3.1, 250, 5],
+  ["Tesla", "Cybertruck", 2026, "BEV", "Truck", 150, 547, 123, 3.9, 250, 5],
+  // BYD · China
+  ["BYD", "Han EV", 2026, "BEV", "Sedan", 72, 605, 85.4, 3.9, 150, 5],
+  ["BYD", "Tang EV", 2026, "BEV", "SUV", 85, 530, 108.8, 4.6, 170, 7],
+  ["BYD", "Song Plus EV", 2026, "BEV", "SUV", 48, 505, 87, 8.5, 115, 5],
+  ["BYD", "Seagull", 2026, "BEV", "Hatchback", 22, 305, 38.9, 9.0, 40, 5],
+  ["BYD", "Qin Plus EV", 2026, "BEV", "Sedan", 34, 510, 57.6, 7.3, 80, 5],
+  ["BYD", "Sealion 7", 2026, "BEV", "SUV", 62, 610, 82.5, 4.5, 230, 5],
+  ["BYD", "Denza D9", 2026, "BEV", "Van", 88, 600, 103, 6.9, 166, 7],
+  // Rivian · USA
+  ["Rivian", "R1T", 2026, "BEV", "Truck", 140, 505, 135, 3.0, 220, 5],
+  ["Rivian", "R1S", 2026, "BEV", "SUV", 150, 483, 135, 3.0, 220, 7],
+  // Lucid · USA
+  ["Lucid", "Air Pure", 2026, "BEV", "Sedan", 110, 660, 88, 4.5, 250, 5],
+  ["Lucid", "Air Touring", 2026, "BEV", "Sedan", 130, 725, 92, 3.4, 250, 5],
+  ["Lucid", "Air Grand Touring", 2026, "BEV", "Sedan", 170, 830, 112, 3.0, 300, 5],
+  ["Lucid", "Gravity", 2026, "BEV", "SUV", 160, 708, 120, 3.4, 250, 7],
+  // Ford · USA
+  ["Ford", "Mustang Mach-E", 2026, "BEV", "SUV", 72, 490, 91, 5.1, 150, 5],
+  ["Ford", "F-150 Lightning", 2026, "BEV", "Truck", 110, 515, 131, 4.0, 155, 5],
+  ["Ford", "Explorer EV", 2026, "BEV", "SUV", 68, 602, 77, 5.3, 185, 5],
+  // Chevrolet / GMC / Cadillac · USA
+  ["Chevrolet", "Blazer EV", 2026, "BEV", "SUV", 62, 515, 85, 6.0, 190, 5],
+  ["Chevrolet", "Equinox EV", 2026, "BEV", "SUV", 48, 513, 85, 5.9, 150, 5],
+  ["Chevrolet", "Silverado EV", 2026, "BEV", "Truck", 130, 708, 205, 4.5, 350, 5],
+  ["GMC", "Hummer EV", 2026, "BEV", "Truck", 175, 529, 212, 3.0, 350, 5],
+  ["Cadillac", "Lyriq", 2026, "BEV", "SUV", 95, 502, 102, 4.9, 190, 5],
+  ["Cadillac", "Escalade IQ", 2026, "BEV", "SUV", 185, 740, 205, 4.9, 350, 7],
+  // Hyundai · Korea
+  ["Hyundai", "Ioniq 5", 2026, "BEV", "SUV", 58, 507, 77.4, 5.1, 233, 5],
+  ["Hyundai", "Ioniq 6", 2026, "BEV", "Sedan", 60, 614, 77.4, 5.1, 233, 5],
+  ["Hyundai", "Ioniq 5 N", 2026, "BEV", "SUV", 92, 448, 84, 3.4, 240, 5],
+  // Kia · Korea
+  ["Kia", "EV9", 2026, "BEV", "SUV", 95, 541, 99.8, 5.3, 210, 7],
+  ["Kia", "Niro EV", 2026, "BEV", "SUV", 45, 460, 64.8, 7.8, 80, 5],
+  ["Kia", "EV3", 2026, "BEV", "SUV", 40, 605, 81.4, 7.5, 128, 5],
+  // Genesis · Korea
+  ["Genesis", "GV60", 2026, "BEV", "SUV", 85, 466, 77.4, 4.0, 233, 5],
+  ["Genesis", "Electrified GV70", 2026, "BEV", "SUV", 95, 455, 77.4, 4.2, 233, 5],
+  // Volkswagen · Germany
+  ["Volkswagen", "ID.3", 2026, "BEV", "Hatchback", 42, 425, 58, 7.3, 120, 5],
+  ["Volkswagen", "ID.4", 2026, "BEV", "SUV", 55, 550, 77, 6.2, 135, 5],
+  ["Volkswagen", "ID.7", 2026, "BEV", "Sedan", 70, 621, 86, 6.5, 200, 5],
+  ["Volkswagen", "ID.Buzz", 2026, "BEV", "Van", 78, 461, 82, 7.9, 170, 7],
+  // Mercedes-Benz · Germany
+  ["Mercedes-Benz", "EQS 450+", 2026, "BEV", "Sedan", 140, 782, 108, 6.2, 200, 5],
+  ["Mercedes-Benz", "EQE SUV", 2026, "BEV", "SUV", 120, 550, 90.6, 4.9, 170, 5],
+  ["Mercedes-Benz", "EQB", 2026, "BEV", "SUV", 78, 423, 66.5, 8.0, 100, 7],
+  ["Mercedes-Benz", "EQS SUV", 2026, "BEV", "SUV", 155, 660, 108, 6.7, 200, 7],
+  // BMW · Germany
+  ["BMW", "i4", 2026, "BEV", "Sedan", 78, 590, 83.9, 5.7, 205, 5],
+  ["BMW", "iX", 2026, "BEV", "SUV", 120, 630, 111.5, 4.6, 195, 5],
+  ["BMW", "i5", 2026, "BEV", "Sedan", 95, 582, 83.9, 6.0, 205, 5],
+  ["BMW", "i7", 2026, "BEV", "Sedan", 160, 625, 101.7, 4.7, 195, 5],
+  ["BMW", "iX1", 2026, "BEV", "SUV", 68, 440, 66.5, 5.6, 130, 5],
+  // Audi · Germany
+  ["Audi", "Q4 e-tron", 2026, "BEV", "SUV", 72, 520, 82, 6.2, 175, 5],
+  ["Audi", "Q8 e-tron", 2026, "BEV", "SUV", 110, 582, 114, 5.6, 170, 5],
+  ["Audi", "e-tron GT", 2026, "BEV", "Sedan", 135, 501, 93.4, 4.1, 270, 5],
+  ["Audi", "Q6 e-tron", 2026, "BEV", "SUV", 95, 625, 100, 5.9, 270, 5],
+  // Porsche · Germany
+  ["Porsche", "Taycan", 2026, "BEV", "Sedan", 180, 678, 105, 4.8, 320, 5],
+  ["Porsche", "Macan EV", 2026, "BEV", "SUV", 150, 613, 100, 5.2, 270, 5],
+  // Volvo / Polestar · Sweden
+  ["Volvo", "EX30", 2026, "BEV", "SUV", 48, 480, 69, 5.3, 153, 5],
+  ["Volvo", "EX90", 2026, "BEV", "SUV", 130, 600, 111, 4.9, 250, 7],
+  ["Volvo", "XC40 Recharge", 2026, "BEV", "SUV", 65, 500, 82, 4.9, 200, 5],
+  ["Polestar", "Polestar 2", 2026, "BEV", "Sedan", 72, 655, 82, 4.5, 205, 5],
+  ["Polestar", "Polestar 3", 2026, "BEV", "SUV", 120, 610, 111, 4.7, 250, 5],
+  ["Polestar", "Polestar 4", 2026, "BEV", "SUV", 110, 620, 100, 3.8, 200, 5],
+  // NIO · China
+  ["NIO", "ET5", 2026, "BEV", "Sedan", 68, 560, 75, 4.0, 140, 5],
+  ["NIO", "ET7", 2026, "BEV", "Sedan", 95, 580, 100, 3.8, 140, 5],
+  ["NIO", "ES6", 2026, "BEV", "SUV", 75, 490, 75, 4.6, 140, 5],
+  ["NIO", "ES8", 2026, "BEV", "SUV", 110, 465, 100, 4.1, 140, 7],
+  ["NIO", "ET9", 2026, "BEV", "Sedan", 150, 650, 120, 4.3, 600, 5],
+  // XPeng · China
+  ["XPeng", "P7", 2026, "BEV", "Sedan", 62, 576, 86.2, 4.3, 175, 5],
+  ["XPeng", "G6", 2026, "BEV", "SUV", 55, 570, 87.5, 3.9, 280, 5],
+  ["XPeng", "G9", 2026, "BEV", "SUV", 78, 570, 98, 3.9, 300, 5],
+  ["XPeng", "X9", 2026, "BEV", "Van", 85, 640, 101.5, 5.7, 260, 7],
+  // Li Auto · China (extended-range PHEV)
+  ["Li Auto", "L7", 2026, "PHEV", "SUV", 72, 1100, 42.8, 5.3, 90, 5],
+  ["Li Auto", "L9", 2026, "PHEV", "SUV", 95, 1100, 44.5, 5.3, 90, 6],
+  ["Li Auto", "MEGA", 2026, "BEV", "Van", 110, 710, 102, 5.5, 520, 7],
+  // Zeekr · China
+  ["Zeekr", "001", 2026, "BEV", "Wagon", 72, 656, 100, 3.8, 360, 5],
+  ["Zeekr", "007", 2026, "BEV", "Sedan", 60, 688, 75, 5.6, 360, 5],
+  ["Zeekr", "X", 2026, "BEV", "SUV", 55, 476, 66, 3.7, 150, 5],
+  ["Zeekr", "009", 2026, "BEV", "Van", 110, 702, 116, 4.5, 360, 7],
+  // MG · China / UK
+  ["MG", "ZS EV", 2026, "BEV", "SUV", 34, 440, 51.1, 8.4, 92, 5],
+  ["MG", "Cyberster", 2026, "BEV", "Roadster", 90, 519, 77, 3.2, 144, 2],
+  ["MG", "MG5 EV", 2026, "BEV", "Wagon", 33, 400, 61.1, 7.7, 87, 5],
+  // GWM Ora · China
+  ["Ora", "03", 2026, "BEV", "Hatchback", 30, 420, 63, 8.4, 67, 5],
+  ["Ora", "07", 2026, "BEV", "Sedan", 48, 640, 83, 4.3, 88, 5],
+  // Nissan / Toyota / Honda / Subaru · Japan
+  ["Nissan", "Leaf", 2026, "BEV", "Hatchback", 34, 385, 62, 7.9, 100, 5],
+  ["Toyota", "bZ4X", 2026, "BEV", "SUV", 55, 516, 71.4, 6.9, 150, 5],
+  ["Toyota", "RAV4 Prime", 2026, "PHEV", "SUV", 58, 970, 18.1, 6.0, 0, 5],
+  ["Honda", "Prologue", 2026, "BEV", "SUV", 60, 476, 85, 5.5, 150, 5],
+  ["Subaru", "Solterra", 2026, "BEV", "SUV", 55, 460, 71.4, 6.9, 150, 5],
+  // Others
+  ["Fisker", "Ocean", 2026, "BEV", "SUV", 75, 707, 106, 3.9, 250, 5],
+  ["Lotus", "Eletre", 2026, "BEV", "SUV", 200, 600, 112, 2.9, 350, 5],
+  ["Smart", "#1", 2026, "BEV", "SUV", 40, 440, 66, 6.7, 150, 5],
+  ["Jeep", "Wrangler 4xe", 2026, "PHEV", "SUV", 68, 600, 17.3, 6.0, 0, 5],
+  ["Peugeot", "e-3008", 2026, "BEV", "SUV", 58, 525, 73, 8.8, 160, 5],
+  ["Renault", "Megane E-Tech", 2026, "BEV", "SUV", 50, 470, 60, 7.4, 130, 5],
+];
+
+const EV_COLORS: { name: string; hex: string }[] = [
+  { name: "Pearl White", hex: "#E8EAED" }, { name: "Solid Black", hex: "#1A1D22" },
+  { name: "Titanium Grey", hex: "#8B939E" }, { name: "Deep Blue", hex: "#2B4C7E" },
+  { name: "Fusion Red", hex: "#B33A2E" },
+];
+
+function evChargeTime(pt: string, chargeKw: number): string {
+  if (pt === "HEV") return "Self-charging hybrid — no plug";
+  if (pt === "PHEV") return "Home AC + engine range-extender";
+  if (chargeKw >= 250) return "10–80% in ~18 min (ultra-rapid DC)";
+  if (chargeKw >= 150) return "10–80% in ~28 min (DC)";
+  if (chargeKw >= 90) return "30–80% in ~30 min (DC)";
+  return "AC/DC — overnight or ~45 min top-up";
+}
+
+function evSummary(m: EVRow): string {
+  const [make, model, , pt, body, , range, batt] = m;
+  const kind = pt === "BEV" ? "battery-electric" : pt === "PHEV" ? "plug-in hybrid" : "hybrid";
+  return `${make} ${model}: a ${kind} ${body.toLowerCase()} with ${range}km of real-world range from a ${batt}kWh pack. Imported, homologated and warranty-backed for Nigerian roads.`;
+}
+
+const EXTRA_VEHICLES = EV_MODELS.map((m) => {
+  const [make, model, year, pt, body, priceM, range, batt, accel, charge, seats] = m;
+  const slug = `${make} ${model}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return {
+    slug, make, model, year, powertrain: pt, bodyStyle: body,
+    priceNGN: Math.round(priceM * 1_000_000), rangeKm: range, batteryKwh: batt, accel,
+    chargeKw: charge, chargeTime: evChargeTime(pt, charge), seats,
+    colors: EV_COLORS, summary: evSummary(m), featured: false,
+  };
+});
+
+// ─── 100-strong property portfolio across Nigeria's major cities ───
+const NG_AREAS: { city: string; area: string; tier: number }[] = [
+  { city: "Lagos", area: "Banana Island", tier: 4 }, { city: "Lagos", area: "Ikoyi", tier: 4 },
+  { city: "Lagos", area: "Victoria Island", tier: 3 }, { city: "Lagos", area: "Oniru", tier: 3 },
+  { city: "Lagos", area: "Lekki Phase 1", tier: 3 }, { city: "Lagos", area: "Ikeja GRA", tier: 2 },
+  { city: "Lagos", area: "Magodo GRA", tier: 2 }, { city: "Lagos", area: "Ajah", tier: 1 },
+  { city: "Abuja", area: "Maitama", tier: 4 }, { city: "Abuja", area: "Asokoro", tier: 3 },
+  { city: "Abuja", area: "Guzape", tier: 3 }, { city: "Abuja", area: "Wuse 2", tier: 2 },
+  { city: "Abuja", area: "Jabi", tier: 2 }, { city: "Abuja", area: "Katampe Extension", tier: 2 },
+  { city: "Abuja", area: "Gwarinpa", tier: 1 }, { city: "Abuja", area: "Life Camp", tier: 1 },
+  { city: "Port Harcourt", area: "GRA Phase 2", tier: 2 }, { city: "Port Harcourt", area: "Woji", tier: 1 },
+  { city: "Port Harcourt", area: "Trans Amadi", tier: 1 }, { city: "Ibadan", area: "Bodija", tier: 1 },
+  { city: "Enugu", area: "Independence Layout", tier: 2 }, { city: "Uyo", area: "Ewet Housing", tier: 1 },
+];
+
+const RES_AMEN = ["24/7 power (solar hybrid)", "Fibre + Starlink ready", "Fitted kitchen", "Ensuite bedrooms", "Boys' quarters", "Secure estate + CCTV", "Borehole + treatment", "Ample parking"];
+const SHORT_AMEN = ["24/7 power", "Fast WiFi", "Smart lock entry", "Netflix + DSTV", "Housekeeping option", "Secure parking", "Pool access"];
+const COMM_AMEN = ["Central A/C", "Backup power", "Fibre internet", "Lift access", "Ample parking", "24/7 security", "Fire safety system"];
+const WARE_AMEN = ["High-bay clearance", "Loading bays", "3-phase power", "Truck-accessible yard", "Gantry/forklift ready", "24/7 security", "Office annex"];
+
+function pick<T>(arr: T[], n: number, seed: number): T[] {
+  return arr.filter((_, i) => (i + seed) % arr.length < n).slice(0, n);
+}
+
+const EXTRA_PROPERTIES = NG_AREAS.flatMap((a, ai) => {
+  const t = a.tier;
+  const beds = 2 + (t % 4); // 2..5
+  const baths = beds;
+  return [
+    {
+      slug: `${a.area}-${beds}bed-home`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      title: `${beds}-Bedroom Home — ${a.area}`, type: "residential", location: a.area, city: a.city,
+      priceNGN: Math.round((6 + t * 6) * 1_000_000), nightlyNGN: 0, serviceNGN: Math.round(t * 400_000),
+      depositNGN: 0, cautionNGN: 0, beds, baths, sqm: 140 + t * 60,
+      amenities: pick(RES_AMEN, 6, ai), featured: t >= 3 && ai % 4 === 0,
+      summary: `A ${beds}-bedroom home in ${a.area}, ${a.city} — ${140 + t * 60}m² of finished living space with reliable power and secure estate access. Priced as annual rent.`,
+    },
+    {
+      slug: `${a.area}-shortlet`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      title: `Serviced Shortlet — ${a.area}`, type: "shortlet", location: a.area, city: a.city,
+      priceNGN: 0, nightlyNGN: Math.round((60 + t * 45) * 1_000), serviceNGN: 0, depositNGN: 0,
+      cautionNGN: Math.round((40 + t * 30) * 1_000), beds: 1 + (t % 3), baths: 1 + (t % 3), sqm: 55 + t * 25,
+      amenities: pick(SHORT_AMEN, 5, ai + 1), featured: t >= 3 && ai % 5 === 0,
+      summary: `A serviced ${1 + (t % 3)}-bed shortlet in ${a.area}, ${a.city} with uninterrupted power and fast WiFi — booked nightly, ready for business or leisure stays.`,
+    },
+    {
+      slug: `${a.area}-office-suite`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      title: `Commercial Office Suite — ${a.area}`, type: "commercial", location: a.area, city: a.city,
+      priceNGN: Math.round((8 + t * 10) * 1_000_000), nightlyNGN: 0, serviceNGN: Math.round(t * 800_000),
+      depositNGN: 0, cautionNGN: 0, beds: 0, baths: 2, sqm: 180 + t * 120,
+      amenities: pick(COMM_AMEN, 6, ai + 2), featured: false,
+      summary: `${180 + t * 120}m² of fitted, air-conditioned office space in ${a.area}, ${a.city} with backup power and lift access. Annual lease.`,
+    },
+    {
+      slug: `${a.area}-warehouse`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      title: `Warehouse / Industrial Space — ${a.area}`, type: "warehousing", location: a.area, city: a.city,
+      priceNGN: Math.round((10 + t * 8) * 1_000_000), nightlyNGN: 0, serviceNGN: 0, depositNGN: 0,
+      cautionNGN: 0, beds: 0, baths: 2, sqm: 800 + t * 700,
+      amenities: pick(WARE_AMEN, 6, ai + 3), featured: false,
+      summary: `${800 + t * 700}m² warehouse in ${a.area}, ${a.city} with high-bay clearance, loading bays and 3-phase power on a truck-accessible yard. Annual lease.`,
+    },
+  ];
+});
+
 async function main(): Promise<void> {
   console.log("Seeding Greyfusion platform…");
 
@@ -296,17 +513,19 @@ async function main(): Promise<void> {
   await prisma.order.deleteMany();
   await prisma.lead.deleteMany();
 
-  for (const v of vehicles) {
+  const seedVehicles = [...vehicles, ...EXTRA_VEHICLES];
+  for (const v of seedVehicles) {
     await prisma.vehicle.create({ data: { ...v, colors: JSON.stringify(v.colors) } });
   }
-  console.log(`  ${vehicles.length} vehicles`);
+  console.log(`  ${seedVehicles.length} vehicles`);
 
+  const seedProperties = [...properties, ...EXTRA_PROPERTIES];
   const propMap = new Map<string, string>();
-  for (const p of properties) {
+  for (const p of seedProperties) {
     const created = await prisma.property.create({ data: { ...p, amenities: JSON.stringify(p.amenities) } });
     propMap.set(p.slug, created.id);
   }
-  console.log(`  ${properties.length} properties`);
+  console.log(`  ${seedProperties.length} properties`);
 
   for (const p of products) {
     await prisma.product.create({ data: { ...p, variants: JSON.stringify(p.variants), specs: JSON.stringify(p.specs) } });

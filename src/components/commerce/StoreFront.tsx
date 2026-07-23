@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { EASE } from "@/components/Reveal";
 import { cn, ngn, safeJson } from "@/lib/utils";
 import { useCart } from "@/components/commerce/CartContext";
 import { productImage } from "@/lib/media";
 import { MediaImage } from "@/components/media/MediaImage";
+import { Pagination } from "@/components/common/Pagination";
+
+const PER_PAGE = 20;
 
 export interface ProductItem {
   slug: string;
@@ -77,9 +80,15 @@ export function StoreFront({ products }: { products: ProductItem[] }) {
   const [dept, setDept] = useState("All");
   const [quick, setQuick] = useState<ProductItem | null>(null);
   const [added, setAdded] = useState(false);
+  const [page, setPage] = useState(1);
   const { add } = useCart();
 
   const filtered = useMemo(() => products.filter((p) => dept === "All" || p.category === dept), [products, dept]);
+
+  useEffect(() => { setPage(1); }, [dept]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const current = Math.min(page, pageCount);
+  const paged = filtered.slice((current - 1) * PER_PAGE, current * PER_PAGE);
 
   const handleAdd = (p: ProductItem, variant: string) => {
     add({ slug: p.slug, name: p.name, priceNGN: p.priceNGN, variant });
@@ -110,9 +119,13 @@ export function StoreFront({ products }: { products: ProductItem[] }) {
         ))}
       </nav>
 
-      <motion.div layout className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <p className="num mt-6 text-sm ink-muted">
+        {filtered.length} product(s){pageCount > 1 ? ` · page ${current} of ${pageCount}` : ""}
+      </p>
+
+      <motion.div layout className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <AnimatePresence mode="popLayout">
-          {filtered.map((p) => (
+          {paged.map((p) => (
             <motion.div key={p.slug} layout initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.3, ease: EASE }}>
               <div className="group card flex h-full flex-col overflow-hidden transition-all duration-500 ease-fusion hover:-translate-y-1 hover:shadow-xl">
                 <Link href={`/divisions/commerce/${p.slug}`} className="relative block aspect-square overflow-hidden" aria-label={p.name}>
@@ -148,6 +161,9 @@ export function StoreFront({ products }: { products: ProductItem[] }) {
           ))}
         </AnimatePresence>
       </motion.div>
+
+      {filtered.length === 0 && <p className="mt-8 text-sm ink-muted">No products in this department yet.</p>}
+      <Pagination page={current} pageCount={pageCount} onChange={setPage} accent="#E11D48" />
 
       <AnimatePresence>
         {quick && (

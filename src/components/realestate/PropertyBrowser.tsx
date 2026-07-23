@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EASE } from "@/components/Reveal";
 import { cn, ngn, ngnCompact } from "@/lib/utils";
 import { propertyImage } from "@/lib/media";
 import { MediaImage } from "@/components/media/MediaImage";
+import { Pagination } from "@/components/common/Pagination";
+
+const PER_PAGE = 10;
 
 export interface PropertyItem {
   slug: string;
@@ -41,6 +44,9 @@ export function PropertyBrowser({ properties }: { properties: PropertyItem[] }) 
   const [city, setCity] = useState("All");
   const [band, setBand] = useState(0);
   const [beds, setBeds] = useState(0);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => { setPage(1); }, [type, city, band, beds]);
 
   const filtered = properties.filter(
     (p) =>
@@ -49,6 +55,10 @@ export function PropertyBrowser({ properties }: { properties: PropertyItem[] }) 
       BANDS[band].test(p) &&
       (beds === 0 || p.beds >= beds)
   );
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const current = Math.min(page, pageCount);
+  const paged = filtered.slice((current - 1) * PER_PAGE, current * PER_PAGE);
 
   return (
     <div>
@@ -91,11 +101,13 @@ export function PropertyBrowser({ properties }: { properties: PropertyItem[] }) 
         </div>
       </div>
 
-      <p className="num mt-4 text-sm ink-muted">{filtered.length} propert{filtered.length === 1 ? "y" : "ies"}</p>
+      <p className="num mt-4 text-sm ink-muted">
+        {filtered.length} propert{filtered.length === 1 ? "y" : "ies"}{pageCount > 1 ? ` · page ${current} of ${pageCount}` : ""}
+      </p>
 
       <motion.div layout className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
-          {filtered.map((p) => (
+          {paged.map((p) => (
             <motion.div key={p.slug} layout initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.35, ease: EASE }}>
               <Link href={`/divisions/real-estate/${p.slug}`} className="group card block overflow-hidden transition-all duration-500 ease-fusion hover:-translate-y-1 hover:shadow-xl">
                 <div className="relative aspect-[4/3] overflow-hidden">
@@ -125,6 +137,7 @@ export function PropertyBrowser({ properties }: { properties: PropertyItem[] }) 
         </AnimatePresence>
       </motion.div>
       {filtered.length === 0 && <p className="mt-8 text-sm ink-muted">Nothing matches — widen the filters.</p>}
+      <Pagination page={current} pageCount={pageCount} onChange={setPage} accent="#0D9488" />
     </div>
   );
 }

@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EASE } from "@/components/Reveal";
 import { cn, money, ngnCompact, safeJson, type Currency } from "@/lib/utils";
 import { MediaImage } from "@/components/media/MediaImage";
 import { MEDIA } from "@/lib/media";
+import { Pagination } from "@/components/common/Pagination";
+
+const PER_PAGE = 10;
 
 export interface VehicleItem {
   slug: string;
@@ -42,6 +45,9 @@ export function VehicleMarket({ vehicles, fx = { USD: 1580, EUR: 1720 } }: { veh
   const [band, setBand] = useState(0);
   const [minRange, setMinRange] = useState(0);
   const [sort, setSort] = useState(0);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => { setPage(1); }, [pt, make, body, band, minRange, sort]);
 
   const BANDS = [
     { label: "Any price", test: () => true },
@@ -60,6 +66,10 @@ export function VehicleMarket({ vehicles, fx = { USD: 1580, EUR: 1720 } }: { veh
         v.rangeKm >= minRange
     )
     .sort(SORTS[sort].fn);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const current = Math.min(page, pageCount);
+  const paged = filtered.slice((current - 1) * PER_PAGE, current * PER_PAGE);
 
   return (
     <div>
@@ -129,11 +139,13 @@ export function VehicleMarket({ vehicles, fx = { USD: 1580, EUR: 1720 } }: { veh
         </div>
       </div>
 
-      <p className="num mt-4 text-sm ink-muted">{filtered.length} vehicle(s)</p>
+      <p className="num mt-4 text-sm ink-muted">
+        {filtered.length} vehicle(s){pageCount > 1 ? ` · page ${current} of ${pageCount}` : ""}
+      </p>
 
       <motion.div layout className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
-          {filtered.map((v) => {
+          {paged.map((v) => {
             const colors = safeJson<{ name: string; hex: string }[]>(v.colors, []);
             const first = colors[0]?.hex ?? "#8B939E";
             return (
@@ -172,6 +184,7 @@ export function VehicleMarket({ vehicles, fx = { USD: 1580, EUR: 1720 } }: { veh
         </AnimatePresence>
       </motion.div>
       {filtered.length === 0 && <p className="mt-8 text-sm ink-muted">No vehicles match — relax a filter.</p>}
+      <Pagination page={current} pageCount={pageCount} onChange={setPage} accent="#0284C7" />
     </div>
   );
 }
