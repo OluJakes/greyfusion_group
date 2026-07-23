@@ -19,8 +19,8 @@ const DEFAULT_USERNAME = "hello@greyfusion.com.ng";
 
 /** Generate an A±B challenge, store the signed answer in an HTTP-only cookie. */
 export async function generateCaptchaChallenge(): Promise<CaptchaChallenge> {
-  const a = Math.floor(Math.random() * 9) + 1; // 1..10
-  let b = Math.floor(Math.random() * 9) + 1;
+  const a = Math.floor(Math.random() * 98) + 1; // 1..99
+  let b = Math.floor(Math.random() * 98) + 1;
   const subtract = Math.random() > 0.5;
   let answer: number;
   let question: string;

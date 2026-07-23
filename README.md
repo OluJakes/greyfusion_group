@@ -27,6 +27,39 @@ in `.env` (default: `greyfusion-ops-2026`). **Change it and `SESSION_SECRET` bef
 > `EssCalculationLead`, `SmartHomeQuote`) then `npx prisma generate`. `postinstall`
 > already runs generate, so a fresh `npm install` picks the new models up automatically.
 
+## V15 — multi-source storefront catalogue (Solar Village + Intavalto)
+
+The storefront lists whatever is in the `Product` table, so an un-seeded / un-synced
+instance shows an empty grid. V15 fixes that two ways:
+
+**Real snapshot in the seed.** `npm run db:seed` now loads 15 real Solar Village products
+(inverters, batteries, panels, solar systems) and 3 Intavalto smart-home products — each with
+its real image, price and a description — so the storefront is populated immediately.
+
+**12-hour two-source sync.** `src/lib/cron/catalogSync.ts` runs two adapters:
+`intavaltoSync` (WooCommerce Store API — full data incl. short + long descriptions, price,
+images, categories) and `solarvillageSync` (a Magento listing scraper in
+`magentoParse.ts` — name, price, image, category from standard `product-item` markup).
+Products upsert into `Product` + `EntityMedia` under `intavalto-` / `solarvillage-` slug
+namespaces (manual products and admin media are never touched), and each run writes a
+`SyncLog` per source (see /admin → Sync log). Endpoint: `/api/cron/sync-catalog`
+(`/api/cron/sync-intavalto` is kept as an alias), scheduled **every 12 hours**
+(`0 */12 * * *`) via `vercel.json` — or on cPanel:
+
+```
+0 */12 * * * curl -s -H "Authorization: Bearer $CRON_SECRET" \
+  https://www.greyfusion.com.ng/api/cron/sync-catalog > /dev/null
+```
+
+In local dev (no cron), trigger a sync once with
+`curl http://localhost:3000/api/cron/sync-catalog`.
+
+> **Solar Village coverage:** it's a Magento store with no public product JSON API, so the
+> adapter crawls listing pages. The homepage listing syncs out of the box; set
+> `SOLARVILLAGE_LISTING_URLS` (comma-separated category URLs) to widen coverage. Full long
+> descriptions come through reliably for Intavalto (JSON API); for Solar Village the listing
+> provides name/price/image/category (the seed ships hand-written descriptions for its items).
+
 ## V13 — analytics, RBAC, direct downloads & Tesla hero
 
 **Tesla flagship hero.** `/autos` now leads with the Tesla flagship ultra-charger asset
