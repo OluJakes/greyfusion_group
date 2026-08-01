@@ -8,7 +8,9 @@ import { FloatingContact } from "@/components/FloatingContact";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import { getBranding, getNav, getSocials } from "@/lib/branding";
 
-export const revalidate = 60;
+// Always render public pages from the live database so admin edits appear immediately
+// on every device. SQLite reads are local-file fast, so per-request rendering is cheap.
+export const dynamic = "force-dynamic";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.greyfusion.com.ng";
 

@@ -61,7 +61,7 @@ export function Header({ branding, extraNav = [] }: { branding?: Branding; extra
       className={
         "fixed inset-x-0 top-0 z-40 transition-all duration-300 ease-fusion " +
         (scrolled || megaOpen
-          ? "border-b hairline bg-[var(--surface)]/90 backdrop-blur-xl shadow-sm"
+          ? "border-b hairline bg-[var(--surface)] shadow-sm"
           : "bg-transparent")
       }
     >
@@ -155,7 +155,7 @@ export function Header({ branding, extraNav = [] }: { branding?: Branding; extra
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.3, ease: EASE }}
-            className="hidden border-t hairline bg-[var(--surface)]/95 backdrop-blur-xl lg:block"
+            className="hidden border-t hairline bg-[var(--surface)] shadow-xl lg:block"
           >
             <div className="container-gf grid grid-cols-3 gap-6 py-8 xl:grid-cols-4">
               {DIVISIONS.map((d, i) => (
@@ -171,7 +171,7 @@ export function Header({ branding, extraNav = [] }: { branding?: Branding; extra
                     className="group block rounded-xl p-3 transition-colors hover:bg-[var(--surface-2)]"
                   >
                     <span className="keyline block w-8" style={{ background: d.accent }} />
-                    <p className="mt-3 font-display text-sm font-semibold">{d.name}</p>
+                    <p className="mt-3 font-display text-sm font-semibold text-[var(--ink)]">{d.name}</p>
                     <p className="mt-1 text-xs leading-relaxed ink-muted">{d.tagline}</p>
                   </Link>
                   <ul className="mt-2 space-y-1 px-3">

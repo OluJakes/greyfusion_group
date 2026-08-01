@@ -72,6 +72,7 @@ export function ProductGallery({
               alt={current.altText || title}
               tint={tint}
               overlay={false}
+              dim={false}
               priority
               sizes="(max-width: 1024px) 100vw, 60vw"
               className="h-full w-full"
@@ -106,7 +107,7 @@ export function ProductGallery({
               )}
               style={i === active ? { borderColor: tint } : undefined}
             >
-              <MediaImage src={img.url} alt={img.altText || `${title} thumbnail ${i + 1}`} tint={tint} overlay={false} sizes="112px" className="h-full w-full" />
+              <MediaImage src={img.url} alt={img.altText || `${title} thumbnail ${i + 1}`} tint={tint} overlay={false} dim={false} sizes="112px" className="h-full w-full" />
             </button>
           ))}
         </div>
@@ -160,7 +161,7 @@ export function ProductGallery({
               className="relative h-[76vh] w-[min(92vw,1100px)] overflow-hidden rounded-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <MediaImage src={current.url} alt={current.altText || title} tint={tint} overlay={false} priority sizes="92vw" className="h-full w-full" imgClassName="object-contain" />
+              <MediaImage src={current.url} alt={current.altText || title} tint={tint} overlay={false} dim={false} priority sizes="92vw" className="h-full w-full" imgClassName="object-contain" />
             </motion.div>
           </motion.div>
         )}

@@ -9,7 +9,7 @@ import { MediaImage } from "@/components/media/MediaImage";
 import { MEDIA } from "@/lib/media";
 import { Pagination } from "@/components/common/Pagination";
 
-const PER_PAGE = 10;
+const PER_PAGE = 12;
 
 export interface VehicleItem {
   slug: string;
@@ -154,8 +154,11 @@ export function VehicleMarket({ vehicles, fx = { USD: 1580, EUR: 1720 } }: { veh
                   <div className="relative aspect-[16/10] w-full overflow-hidden">
                     <MediaImage
                       src={v.thumbnailUrl || MEDIA.autos.done}
+                      fallbackSrc={MEDIA.autos.done}
                       alt={`${v.make} ${v.model} ${v.year}`}
                       tint={first}
+                      overlay={false}
+                      dim={false}
                       className="absolute inset-0"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />

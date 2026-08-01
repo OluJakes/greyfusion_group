@@ -1,46 +1,59 @@
 # syntax=docker/dockerfile:1
-# Greyfusion — production image for Fly.io with a persistent SQLite volume.
-# A fully-seeded database is baked at build time; the entrypoint copies it onto the
-# mounted volume only if the volume is empty, so live data survives deploys.
 
-FROM node:22-slim AS base
+########################  BUILD STAGE  ########################
+FROM node:20-bookworm-slim AS build
 WORKDIR /app
-RUN apt-get update -qq \
- && apt-get install -y --no-install-recommends openssl ca-certificates python3 make g++ \
+
+# Toolchain required to compile the better-sqlite3 native addon.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 make g++ ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
-# ---------- build: install deps, build Next, bake a seeded DB ----------
-FROM base AS build
-ENV NEXT_TELEMETRY_DISABLED=1
-# Copy manifests + prisma first so postinstall (`prisma generate`) has the schema.
-COPY package.json package-lock.json prisma.config.ts ./
+# Install ALL dependencies (including dev: prisma CLI, tsx, typescript, next).
+# These are carried into the runner so the volume DB can be created + seeded at boot.
+COPY package.json package-lock.json* ./
+# The postinstall hook runs `prisma generate`, which needs the schema + config present
+# BEFORE dependencies finish installing — copy them first.
+COPY prisma.config.ts ./
 COPY prisma ./prisma
-RUN npm install --include=dev --legacy-peer-deps
-# App source, then regenerate the client against the schema and build.
-COPY . .
-RUN npx prisma generate
-RUN npm run build
-# Bake a seeded SQLite snapshot into the image (offline seed — no network needed).
-RUN DATABASE_URL="file:/app/prisma/seed.db" npx prisma db push --skip-generate --accept-data-loss \
- && DATABASE_URL="file:/app/prisma/seed.db" npm run db:seed
+RUN npm ci --include=dev
 
-# ---------- runner: minimal standalone server + baked DB ----------
-FROM base AS runner
-ENV NODE_ENV=production \
-    NEXT_TELEMETRY_DISABLED=1 \
-    HOSTNAME=0.0.0.0 \
-    PORT=3000
-# Next standalone output (includes traced node_modules incl. better-sqlite3).
-COPY --from=build /app/.next/standalone ./
-COPY --from=build /app/.next/static ./.next/static
-COPY --from=build /app/public ./public
-# Safety net: ensure the native SQLite driver + adapter are present at runtime
-# (Next traces them via serverComponentsExternalPackages; this guarantees it).
-COPY --from=build /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
-COPY --from=build /app/node_modules/@prisma/adapter-better-sqlite3 ./node_modules/@prisma/adapter-better-sqlite3
-# The baked, seeded database + the first-boot bootstrap script.
-COPY --from=build /app/prisma/seed.db ./prisma/seed.db
-COPY --from=build /app/docker-entrypoint.sh ./docker-entrypoint.sh
+# Application source.
+COPY . .
+
+# public/ can be empty and get dropped from the build context.
+RUN mkdir -p public
+
+# Generate the Rust-free Prisma client (prisma-client generator -> src/generated/prisma).
+RUN npx prisma generate
+
+# ISR / prerendered pages read Prisma during `next build`, so stand up a THROWAWAY
+# database just for the build, then delete it so it can never be mistaken for the
+# runtime database on the volume.
+ENV DATABASE_URL="file:/app/build.db"
+RUN npx prisma db push --accept-data-loss \
+ && npm run db:seed \
+ && npm run build \
+ && rm -f /app/build.db /app/build.db-wal /app/build.db-shm
+
+########################  RUNNER STAGE  ########################
+FROM node:20-bookworm-slim AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+# Default to the mounted Fly volume; fly.toml [env] can override.
+ENV DATABASE_URL="file:/data/greyfusion.db"
+
+# Copy the FULL built app: node_modules (compiled better-sqlite3, prisma CLI, tsx),
+# .next, src, prisma schema + seed, generated client, and the entrypoint.
+COPY --from=build /app ./
+
 RUN chmod +x ./docker-entrypoint.sh
+
 EXPOSE 3000
+
+# The entrypoint creates the schema + seed directly inside the volume database on first
+# boot, then starts Next.js. No database file is ever copied, so a "table does not exist"
+# error is impossible.
 CMD ["./docker-entrypoint.sh"]

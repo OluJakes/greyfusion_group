@@ -128,15 +128,18 @@ export function StoreFront({ products }: { products: ProductItem[] }) {
           {paged.map((p) => (
             <motion.div key={p.slug} layout initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.3, ease: EASE }}>
               <div className="group card flex h-full flex-col overflow-hidden transition-all duration-500 ease-fusion hover:-translate-y-1 hover:shadow-xl">
-                <Link href={`/divisions/commerce/${p.slug}`} className="relative block aspect-square overflow-hidden" aria-label={p.name}>
+                <Link href={`/divisions/commerce/${p.slug}`} className="relative block aspect-square overflow-hidden bg-white" aria-label={p.name}>
                   <MediaImage
                     src={p.thumbnailUrl || productImage(p.category, p.slug)}
+                    fallbackSrc={productImage(p.category, p.slug)}
                     alt={p.name}
                     tint={CAT_HUE[p.category] ?? "#E11D48"}
+                    overlay={false}
+                    dim={false}
                     className="absolute inset-0"
                     sizes="(max-width: 640px) 50vw, 25vw"
                   />
-                  <span className="absolute bottom-3 left-3 font-display text-xs font-semibold uppercase tracking-wider text-white/80">
+                  <span className="absolute bottom-3 left-3 rounded-md bg-graphite/75 px-2 py-1 font-display text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
                     {DEPARTMENTS.find((d) => d.key === p.category)?.label}
                   </span>
                 </Link>

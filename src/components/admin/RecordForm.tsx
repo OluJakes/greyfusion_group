@@ -20,8 +20,8 @@ function MediaInput({
   const onFile = (file: File | undefined) => {
     setError(null);
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Keep uploads under 2MB — for larger media, host it and paste the URL instead.");
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Keep uploads under 10MB — for a larger file, host it and paste the URL instead.");
       return;
     }
     const reader = new FileReader();
@@ -66,7 +66,7 @@ function MediaInput({
             className="input-gf !py-2 text-xs file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--surface-2)] file:px-3 file:py-1.5 file:text-xs file:font-semibold"
             onChange={(e) => onFile(e.target.files?.[0])}
           />
-          <p className="mt-1 text-[11px] ink-muted">Stored inline (base64) in the database — ideal for logos, avatars and certificates under 2MB.</p>
+          <p className="mt-1 text-[11px] ink-muted">Stored inline (base64) in the database — ideal for logos, avatars and certificates under 10MB.</p>
         </div>
       )}
       {value && (
@@ -109,13 +109,20 @@ export function RecordForm({
     e.preventDefault();
     setBusy(true);
     setError(null);
-    const res = await saveRecord(model, id, values);
-    setBusy(false);
-    if (res.ok) {
-      router.push(`/admin/inventory/${model}`);
-      router.refresh();
-    } else {
-      setError(res.error ?? "Save failed");
+    try {
+      const res = await saveRecord(model, id, values);
+      if (res.ok) {
+        router.push(`/admin/inventory/${model}`);
+        router.refresh();
+      } else {
+        setError(res.error ?? "Save failed");
+      }
+    } catch {
+      // A thrown Server Action (e.g. the encoded upload exceeds the body limit) would
+      // otherwise leave the button stuck on "Saving…". Surface it and re-enable the form.
+      setError("Save failed — the document may be too large to upload inline. Keep files under ~10MB, or use ‘Paste URL’ to link a hosted file.");
+    } finally {
+      setBusy(false);
     }
   };
 

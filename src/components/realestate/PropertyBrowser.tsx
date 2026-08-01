@@ -9,7 +9,7 @@ import { propertyImage } from "@/lib/media";
 import { MediaImage } from "@/components/media/MediaImage";
 import { Pagination } from "@/components/common/Pagination";
 
-const PER_PAGE = 10;
+const PER_PAGE = 12;
 
 export interface PropertyItem {
   slug: string;
@@ -113,8 +113,11 @@ export function PropertyBrowser({ properties }: { properties: PropertyItem[] }) 
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <MediaImage
                     src={p.thumbnailUrl || propertyImage(p.type, p.slug)}
+                    fallbackSrc={propertyImage(p.type, p.slug)}
                     alt={`${p.title} — interior and exterior views`}
                     tint={HUES[p.type] ?? "#0D9488"}
+                    overlay={false}
+                    dim={false}
                     className="absolute inset-0"
                     sizes="(max-width: 640px) 100vw, 33vw"
                   />

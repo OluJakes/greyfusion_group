@@ -450,7 +450,7 @@ const EXTRA_PROPERTIES = NG_AREAS.flatMap((a, ai) => {
   const baths = beds;
   return [
     {
-      slug: `${a.area}-${beds}bed-home`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      slug: `${a.area}-${beds}bed-home-${ai}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       title: `${beds}-Bedroom Home — ${a.area}`, type: "residential", location: a.area, city: a.city,
       priceNGN: Math.round((6 + t * 6) * 1_000_000), nightlyNGN: 0, serviceNGN: Math.round(t * 400_000),
       depositNGN: 0, cautionNGN: 0, beds, baths, sqm: 140 + t * 60,
@@ -458,7 +458,7 @@ const EXTRA_PROPERTIES = NG_AREAS.flatMap((a, ai) => {
       summary: `A ${beds}-bedroom home in ${a.area}, ${a.city} — ${140 + t * 60}m² of finished living space with reliable power and secure estate access. Priced as annual rent.`,
     },
     {
-      slug: `${a.area}-shortlet`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      slug: `${a.area}-shortlet-${ai}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       title: `Serviced Shortlet — ${a.area}`, type: "shortlet", location: a.area, city: a.city,
       priceNGN: 0, nightlyNGN: Math.round((60 + t * 45) * 1_000), serviceNGN: 0, depositNGN: 0,
       cautionNGN: Math.round((40 + t * 30) * 1_000), beds: 1 + (t % 3), baths: 1 + (t % 3), sqm: 55 + t * 25,
@@ -466,7 +466,7 @@ const EXTRA_PROPERTIES = NG_AREAS.flatMap((a, ai) => {
       summary: `A serviced ${1 + (t % 3)}-bed shortlet in ${a.area}, ${a.city} with uninterrupted power and fast WiFi — booked nightly, ready for business or leisure stays.`,
     },
     {
-      slug: `${a.area}-office-suite`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      slug: `${a.area}-office-suite-${ai}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       title: `Commercial Office Suite — ${a.area}`, type: "commercial", location: a.area, city: a.city,
       priceNGN: Math.round((8 + t * 10) * 1_000_000), nightlyNGN: 0, serviceNGN: Math.round(t * 800_000),
       depositNGN: 0, cautionNGN: 0, beds: 0, baths: 2, sqm: 180 + t * 120,
@@ -474,7 +474,7 @@ const EXTRA_PROPERTIES = NG_AREAS.flatMap((a, ai) => {
       summary: `${180 + t * 120}m² of fitted, air-conditioned office space in ${a.area}, ${a.city} with backup power and lift access. Annual lease.`,
     },
     {
-      slug: `${a.area}-warehouse`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      slug: `${a.area}-warehouse-${ai}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       title: `Warehouse / Industrial Space — ${a.area}`, type: "warehousing", location: a.area, city: a.city,
       priceNGN: Math.round((10 + t * 8) * 1_000_000), nightlyNGN: 0, serviceNGN: 0, depositNGN: 0,
       cautionNGN: 0, beds: 0, baths: 2, sqm: 800 + t * 700,
