@@ -9,6 +9,13 @@ Divisions resolve both as paths (`/energy` → `/divisions/energy`) and as subdo
 (`energy.greyfusion.com.ng`, handled by `middleware.ts` rewrites — just point the
 subdomain DNS at the same app).
 
+> ## ⚠️ DATA SAFETY — READ FIRST
+> **Never touch live admin data.** The logo, uploaded files, credentials, galleries
+> and page content are edited through `/admin` and stored in the SQLite database on
+> the Fly volume `/data/greyfusion.db`. All client uploads and admin edits must remain
+> intact. Make **code/style changes only** — no seeding, no `--accept-data-loss`, no
+> volume destruction, no record edits. Full rules in **[`CLAUDE.md`](./CLAUDE.md)**.
+
 ---
 
 ## Quick start (local)
